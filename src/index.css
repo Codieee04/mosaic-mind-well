@@ -1,0 +1,83 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 95%;
+    --foreground: 222 47% 30%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 30%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 30%;
+
+    --primary: 12 70% 62%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 152 24% 62%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 40 33% 95%;
+    --muted-foreground: 222 47% 30%;
+
+    --accent: 47 81% 75%;
+    --accent-foreground: 222 47% 30%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 222 47% 30% / 10%;
+    --input: 222 47% 30% / 10%;
+    --ring: 222 47% 30% / 20%;
+
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    @apply bg-freshstart text-deepblue;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md bg-rustred text-white hover:bg-harmony transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-rustred focus:ring-opacity-50;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6 transition-all duration-300;
+  }
+
+  .bot-message {
+    @apply bg-harmony text-white p-3 rounded-lg rounded-tl-none max-w-[80%] my-2;
+  }
+
+  .user-message {
+    @apply bg-sundried p-3 rounded-lg rounded-tr-none max-w-[80%] ml-auto my-2;
+  }
+
+  .input-field {
+    @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-harmony;
+  }
+
+  .emergency-button {
+    @apply fixed bottom-4 right-4 bg-destructive hover:bg-destructive/90 text-white font-medium px-4 py-2 rounded-full shadow-lg z-50 transition-transform duration-300 hover:scale-105;
+  }
+
+  .page-container {
+    @apply container mx-auto px-4 py-8 max-w-5xl animate-fade-in;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold text-deepblue mb-4;
+  }
+}
