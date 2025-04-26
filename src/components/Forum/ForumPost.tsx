@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { saveForumComment } from '../../utils/supabaseClient';
+import { saveForumComment, supabase } from '../../utils/supabaseClient';
 
 interface Comment {
   id: string;
@@ -49,22 +49,25 @@ const ForumPost: React.FC<ForumPostProps> = ({
     setIsSubmitting(true);
     
     try {
-      // In a real app, we would save to Supabase here
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        setIsSubmitting(false);
+        return;
+      }
+      
       const commentData = {
         postId: id,
         content: newComment,
         author: 'anonymous' + Math.floor(Math.random() * 1000)
       };
       
-      const savedComment = await saveForumComment(commentData);
+      const savedComment = await saveForumComment(commentData, user.id);
       
-      // Add new comment to the list
       onCommentAdded(id, savedComment);
       
-      // Clear input
       setNewComment('');
       
-      // Show comments if they were hidden
       if (!showComments) {
         setShowComments(true);
       }

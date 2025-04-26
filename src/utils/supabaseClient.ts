@@ -1,210 +1,208 @@
+import { createClient } from '@supabase/supabase-js';
 
-// This is a placeholder for the Supabase client
-// Replace with actual Supabase setup when connected
+// --- Supabase Connection ---
+const supabaseUrl = 'https://sesefkntidgstshdprcf.supabase.co'; // replace this
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlc2Vma250aWRnc3RzaGRwcmNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2NjYzMDcsImV4cCI6MjA2MTI0MjMwN30.LqCDLQKmbh56hOHBsTqr2fPDVMbtjJ5C2EBchGVe1gc'; // replace this
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Mock data for development
-export const mockChatHistory = [
-  { role: 'assistant', content: 'Hello! How are you feeling today?', id: '1' },
-  { role: 'user', content: 'I\'m feeling a bit anxious today.', id: '2' },
-  { role: 'assistant', content: 'I\'m sorry to hear that. Would you like to talk about what\'s making you feel anxious?', id: '3' },
-];
-
-export const mockMoodData = [
-  { date: '2023-04-20', mood: 'anxious', intensity: 7 },
-  { date: '2023-04-21', mood: 'calm', intensity: 6 },
-  { date: '2023-04-22', mood: 'happy', intensity: 8 },
-  { date: '2023-04-23', mood: 'sad', intensity: 4 },
-  { date: '2023-04-24', mood: 'anxious', intensity: 5 },
-  { date: '2023-04-25', mood: 'calm', intensity: 7 },
-  { date: '2023-04-26', mood: 'happy', intensity: 9 },
-];
-
-export const mockCommunityPosts = [
-  { 
-    id: '1', 
-    content: 'I finally took a walk outside today after weeks of anxiety keeping me indoors. Small steps.', 
-    mood: 'hopeful', 
-    createdAt: '2023-04-25' 
-  },
-  { 
-    id: '2', 
-    content: 'Having trouble sleeping lately. Any tips from the community?', 
-    mood: 'tired', 
-    createdAt: '2023-04-24' 
-  },
-  { 
-    id: '3', 
-    content: 'Just wanted to share that my therapy session today was really productive. Feeling grateful.', 
-    mood: 'grateful', 
-    createdAt: '2023-04-23' 
-  },
-  { 
-    id: '4', 
-    content: 'Started journaling this week and it\'s already helping with my anxiety.', 
-    mood: 'calm', 
-    createdAt: '2023-04-22' 
-  },
-];
-
-export const mockRecommendations = {
-  anxious: [
-    'Try deep breathing: Inhale for 4 counts, hold for 7, exhale for 8',
-    'Go for a short walk outside if possible',
-    'Listen to calming music or nature sounds',
-    'Practice progressive muscle relaxation'
-  ],
-  sad: [
-    'Reach out to a supportive friend or family member',
-    'Watch a comforting movie or show',
-    'Practice self-compassion by writing down three things you appreciate about yourself',
-    'Create something - art, music, writing - to express your feelings'
-  ],
-  stressed: [
-    'Take a break and stretch for 5 minutes',
-    'Write down what is worrying you to get it out of your head',
-    'Make yourself a soothing cup of tea',
-    'Try a guided meditation focused on stress relief'
-  ],
-  angry: [
-    'Physical activity can help process anger - try a brisk walk or jumping jacks',
-    'Write down your thoughts without censoring',
-    'Practice "square breathing" - equal counts of inhale, hold, exhale, hold',
-    'Remove yourself from the situation if possible and return when calmer'
-  ],
-  happy: [
-    'Savor this feeling - write down what contributed to your happiness',
-    'Share your good mood with someone else through a kind gesture',
-    'Take a photo to capture this moment',
-    'Express gratitude for three things in your life right now'
-  ]
+// --- Save Chat Message ---
+export const saveChat = async (message: { role: 'user' | 'assistant', content: string }, userId: string) => {
+  const { data, error } = await supabase.from('chat_history').insert([
+    { user_id: userId, message: message.content, sender: message.role }
+  ]);
+  if (error) console.error('Save Chat Error:', error.message);
+  return data;
 };
 
-// Mock wellness goals data
-export const mockWellnessGoals = [
-  { id: '1', title: 'Drink 8 glasses of water', completed: false },
-  { id: '2', title: 'Meditate for 10 minutes', completed: false },
-  { id: '3', title: 'Take a 15-minute walk', completed: false },
-  { id: '4', title: 'Practice deep breathing', completed: false },
-  { id: '5', title: 'Write in journal', completed: false },
-];
+// --- Load Chat History ---
+export const loadChatHistory = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('chat_history')
+    .select('*')
+    .eq('user_id', userId)
+    .order('timestamp', { ascending: true });
+  if (error) console.error('Load Chat History Error:', error.message);
+  return data;
+};
 
-// Mock journal entries
-export const mockJournalEntries = [
-  { 
-    id: '1', 
-    date: '2023-04-26',
-    mood: 'calm',
-    intensity: 7,
-    content: 'Today was relatively peaceful. I managed my stress better by taking short breaks throughout the day.'
-  },
-  { 
-    id: '2', 
-    date: '2023-04-25',
-    mood: 'anxious',
-    intensity: 6,
-    content: 'Feeling a bit overwhelmed with work deadlines. Going to try some breathing exercises tonight.'
+// --- Save Mood ---
+export const saveMood = async (moodData: { mood: string; notes?: string }, userId: string) => {
+  const { data, error } = await supabase.from('mood_tracker').insert([
+    { user_id: userId, mood: moodData.mood, notes: moodData.notes || '' }
+  ]);
+  if (error) console.error('Save Mood Error:', error.message);
+  return data;
+};
+
+// --- Load Mood History ---
+export const loadMoodHistory = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('mood_tracker')
+    .select('*')
+    .eq('user_id', userId)
+    .order('date', { ascending: false });
+  if (error) console.error('Load Mood History Error:', error.message);
+  return data;
+};
+
+// --- Save Journal Entry ---
+export const saveJournalEntry = async (entry: { content: string }, userId: string) => {
+  const { data, error } = await supabase.from('journals').insert([
+    { user_id: userId, entry: entry.content }
+  ]);
+  if (error) console.error('Save Journal Error:', error.message);
+  return data;
+};
+
+// --- Load Journal Entries ---
+export const loadJournalEntries = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('journals')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) console.error('Load Journal Entries Error:', error.message);
+  return data;
+};
+
+// --- Save Forum Post ---
+export const saveForumPost = async (post: { title: string; content: string }, userId: string) => {
+  const { data, error } = await supabase.from('forum_posts').insert([
+    { user_id: userId, title: post.title, content: post.content }
+  ]);
+  if (error) console.error('Save Forum Post Error:', error.message);
+  return data;
+};
+
+// --- Load Forum Posts ---
+export const loadForumPosts = async () => {
+  const { data, error } = await supabase
+    .from('forum_posts')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) console.error('Load Forum Posts Error:', error.message);
+  return data;
+};
+
+// --- Save Forum Comment ---
+export const saveForumComment = async (comment: { postId: string; content: string }, userId: string) => {
+  const { data, error } = await supabase.from('forum_comments').insert([
+    { post_id: comment.postId, user_id: userId, content: comment.content }
+  ]);
+  if (error) console.error('Save Forum Comment Error:', error.message);
+  return data;
+};
+
+// --- Load Forum Comments ---
+export const loadForumComments = async (postId: string) => {
+  const { data, error } = await supabase
+    .from('forum_comments')
+    .select('*')
+    .eq('post_id', postId)
+    .order('created_at', { ascending: true });
+  if (error) console.error('Load Forum Comments Error:', error.message);
+  return data;
+};
+
+// Save a community post to Supabase
+export const savePost = async (post: { content: string, mood: string }, userId: string) => {
+  const { data, error } = await supabase
+    .from('community_posts')
+    .insert([{ 
+      content: post.content, 
+      mood: post.mood, 
+      user_id: userId, 
+      created_at: new Date().toISOString() 
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error saving post:', error.message);
+    throw error;
   }
-];
 
-// Mock forum data with comments
-export const mockForumPosts = [
-  {
-    id: '1',
-    title: 'How do you manage work anxiety?',
-    content: 'I\'ve been struggling with anxiety at work lately. What strategies have worked for you?',
-    author: 'anonymous1',
-    createdAt: '2023-04-25',
-    comments: [
-      {
-        id: '101',
-        content: 'I find that taking short walks during breaks helps me reset my mind.',
-        author: 'anonymous2',
-        createdAt: '2023-04-25'
-      },
-      {
-        id: '102',
-        content: 'Meditation has been a game-changer for me. Even just 5 minutes makes a difference.',
-        author: 'anonymous3',
-        createdAt: '2023-04-26'
-      }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Dealing with social anxiety during meetings',
-    content: 'Does anyone have tips for managing anxiety during video calls and meetings?',
-    author: 'anonymous4',
-    createdAt: '2023-04-24',
-    comments: [
-      {
-        id: '201',
-        content: 'I prepare talking points beforehand to feel more confident.',
-        author: 'anonymous5',
-        createdAt: '2023-04-24'
-      }
-    ]
+  return data;
+};
+
+// Load community posts from Supabase
+export const loadCommunityPosts = async () => {
+  const { data, error } = await supabase
+    .from('community_posts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error loading community posts:', error.message);
+    return [];
   }
-];
 
-// Simulated Supabase client functions
-export const saveChat = async (message: { role: 'user' | 'assistant', content: string }) => {
-  console.log('Saving chat message:', message);
-  // Would normally save to Supabase
-  return { ...message, id: Date.now().toString() };
+  return data;
+};
+// Save a mood tracker entry
+export const saveMoodTrackerEntry = async (moodData: { mood: string, intensity: number }, userId: string) => {
+  const { data, error } = await supabase
+    .from('mood_tracker')
+    .insert([{ 
+      mood: moodData.mood, 
+      intensity: moodData.intensity, 
+      user_id: userId, 
+      date: new Date().toISOString().split('T')[0] 
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error saving mood entry:', error.message);
+    throw error;
+  }
+
+  return data;
 };
 
-export const saveMood = async (moodData: { mood: string, intensity: number }) => {
-  console.log('Saving mood data:', moodData);
-  // Would normally save to Supabase
-  return { ...moodData, date: new Date().toISOString().split('T')[0] };
+// Load mood tracker data
+export const loadMoodTrackerData = async () => {
+  const { data, error } = await supabase
+    .from('mood_tracker')
+    .select('*')
+    .order('date', { ascending: false });
+
+  if (error) {
+    console.error('Error loading mood tracker data:', error.message);
+    return [];
+  }
+
+  return data;
+};
+// Load Wellness Goals
+export const loadWellnessGoals = async () => {
+  const { data, error } = await supabase
+    .from('wellness_goals')
+    .select('*')
+    .order('id');
+
+  if (error) {
+    console.error('Error loading wellness goals:', error.message);
+    return [];
+  }
+
+  return data;
 };
 
-export const savePost = async (post: { content: string, mood: string }) => {
-  console.log('Saving community post:', post);
-  // Would normally save to Supabase
-  return { 
-    ...post, 
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString().split('T')[0]
-  };
-};
+// Save Wellness Goals
+export const saveWellnessGoals = async (goals: Array<{ id: string; title: string; completed: boolean }>, userId: string) => {
+  const { error } = await supabase
+    .from('wellness_goals')
+    .upsert(
+      goals.map(goal => ({
+        id: goal.id,
+        title: goal.title,
+        completed: goal.completed,
+        user_id: userId,
+      }))
+    );
 
-export const saveForumPost = async (post: { title: string, content: string, author: string }) => {
-  console.log('Saving forum post:', post);
-  return {
-    ...post,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString().split('T')[0],
-    comments: []
-  };
-};
-
-export const saveForumComment = async (comment: { postId: string, content: string, author: string }) => {
-  console.log('Saving forum comment:', comment);
-  return {
-    ...comment,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString().split('T')[0]
-  };
-};
-
-export const saveJournalEntry = async (entry: { mood: string, intensity: number, content: string }) => {
-  console.log('Saving journal entry:', entry);
-  return {
-    ...entry,
-    id: Date.now().toString(),
-    date: new Date().toISOString().split('T')[0]
-  };
-};
-
-export const saveWellnessGoals = async (goals: Array<{ id: string, title: string, completed: boolean }>) => {
-  console.log('Saving wellness goals:', goals);
-  return goals;
-};
-
-// Function to get recommendations based on mood
-export const getRecommendations = (mood: string) => {
-  const defaultMood = 'anxious';
-  return mockRecommendations[mood as keyof typeof mockRecommendations] || 
-         mockRecommendations[defaultMood];
+  if (error) {
+    console.error('Error saving wellness goals:', error.message);
+  }
 };

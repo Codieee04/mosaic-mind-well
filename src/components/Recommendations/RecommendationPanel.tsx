@@ -1,6 +1,4 @@
-
 import React from 'react';
-import { getRecommendations } from '../../utils/supabaseClient';
 
 interface RecommendationPanelProps {
   mood: string;
@@ -8,7 +6,6 @@ interface RecommendationPanelProps {
 }
 
 const RecommendationPanel: React.FC<RecommendationPanelProps> = ({ mood, onClose }) => {
-  const recommendations = getRecommendations(mood);
   
   // Map moods to friendly display names and colors
   const moodDisplay = {
@@ -23,7 +20,15 @@ const RecommendationPanel: React.FC<RecommendationPanelProps> = ({ mood, onClose
   const { name: displayName, color } = 
     moodDisplay[mood as keyof typeof moodDisplay] || 
     { name: 'Your Mood', color: 'bg-gray-100 text-gray-800' };
-  
+
+  // ✅ Here is the dummy recommendations array (added)
+  const dummyRecommendations = [
+    "Take a deep breath and relax.",
+    "Go for a short walk outside.",
+    "Write down something you're grateful for.",
+    "Listen to calming music.",
+  ];
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4">
       <div className="flex justify-between items-center mb-4">
@@ -43,8 +48,9 @@ const RecommendationPanel: React.FC<RecommendationPanelProps> = ({ mood, onClose
         </button>
       </div>
       
+      {/* Use dummyRecommendations.map instead of recommendations.map */}
       <ul className="space-y-2">
-        {recommendations.map((recommendation, index) => (
+        {dummyRecommendations.map((recommendation, index) => (
           <li key={index} className="bg-freshstart/30 p-3 rounded-lg">
             <p className="text-sm text-deepblue">{recommendation}</p>
           </li>

@@ -1,12 +1,42 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
 import EmergencyButton from '../components/Layout/EmergencyButton';
 import FloatingChatButton from '../components/Chatbot/FloatingChatButton';
 import MindfulMinutePopup from '../components/MindfulMinute/MindfulMinutePopup';
+import { saveChat, loadChatHistory, supabase } from '../utils/supabaseClient';
 
 const ChatPage = () => {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [inputText, setInputText] = useState('');
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const chats = await loadChatHistory(user.id);
+        if (chats) {
+          setMessages(chats.map(chat => ({
+            sender: chat.sender,
+            message: chat.message,
+          })));
+        }
+      }
+    };
+    fetchChats();
+  }, []);
+
+  const handleSendMessage = async () => {
+    if (!inputText.trim()) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await saveChat({ role: "user", content: inputText }, user.id);
+    setMessages(prev => [...prev, { sender: "user", message: inputText }]);
+    setInputText('');
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -76,6 +106,42 @@ const ChatPage = () => {
             </div>
           </div>
         </div>
+
+        {/* --- Chat Section Starts Here --- */}
+        <div className="bg-white rounded-lg shadow-md p-6 mt-10">
+          <h2 className="text-xl font-semibold text-harmony mb-4">Your Conversations</h2>
+          
+          <div className="h-60 overflow-y-auto border p-4 rounded mb-4">
+            {messages.length > 0 ? (
+              messages.map((msg, index) => (
+                <div key={index} className={`mb-2 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                  <span className="inline-block bg-freshstart text-deepblue p-2 rounded-lg">
+                    {msg.message}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400">No conversations yet. Start by saying hello!</p>
+            )}
+          </div>
+
+          <div className="flex">
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Type your message..."
+              className="flex-1 border rounded-l px-4 py-2"
+            />
+            <button
+              onClick={handleSendMessage}
+              className="bg-rustred text-white px-6 py-2 rounded-r hover:bg-harmony transition"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+        {/* --- Chat Section Ends Here --- */}
       </main>
       
       <Footer />

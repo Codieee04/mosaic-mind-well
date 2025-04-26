@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { saveJournalEntry } from '../../utils/supabaseClient';
+import { saveJournalEntry, supabase } from '../../utils/supabaseClient';
 
 interface JournalFormProps {
   onEntryAdded: (entry: any) => void;
@@ -31,19 +31,22 @@ const JournalForm: React.FC<JournalFormProps> = ({ onEntryAdded, onCancel }) => 
     setIsSubmitting(true);
     
     try {
-      // In a real app, we would save to Supabase here
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        setIsSubmitting(false);
+        return;
+      }
+      
       const entryData = {
         mood,
         intensity,
         content
       };
       
-      const savedEntry = await saveJournalEntry(entryData);
+      const savedEntry = await saveJournalEntry(entryData, user.id);
       
-      // Add new entry to the list
       onEntryAdded(savedEntry);
-      
-      // Reset form (not needed since we'll close it)
     } catch (error) {
       console.error('Error saving journal entry:', error);
     } finally {

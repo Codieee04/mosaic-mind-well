@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import ForumPost from './ForumPost';
-import { mockForumPosts, saveForumPost } from '../../utils/supabaseClient';
+import { saveForumPost, supabase } from '../../utils/supabaseClient';
 
 interface Comment {
   id: string;
@@ -20,7 +20,7 @@ interface Post {
 }
 
 const ForumList: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>(mockForumPosts);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [newPost, setNewPost] = useState({
     title: '',
@@ -43,24 +43,27 @@ const ForumList: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // In a real app, we would save to Supabase here
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        setIsSubmitting(false);
+        return;
+      }
+      
       const postData = {
         ...newPost,
         author: 'anonymous' + Math.floor(Math.random() * 1000)
       };
       
-      const savedPost = await saveForumPost(postData);
+      const savedPost = await saveForumPost(postData, user.id);
       
-      // Add new post to the list
       setPosts(prev => [savedPost, ...prev]);
       
-      // Reset form
       setNewPost({
         title: '',
         content: ''
       });
       
-      // Close form
       setIsFormOpen(false);
     } catch (error) {
       console.error('Error creating post:', error);
